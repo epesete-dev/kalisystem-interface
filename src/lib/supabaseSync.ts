@@ -1,13 +1,10 @@
 import { supabase } from './supabase';
 import {
   Item,
-  Category,
   Supplier,
-  Tag,
   PendingOrder,
   CurrentOrderMetadata,
-  OrderItem,
-  AppSettings
+  OrderItem
 } from '@/types';
 
 export class SupabaseSync {
@@ -25,12 +22,9 @@ export class SupabaseSync {
             id: item.id,
             name: item.name,
             khmer_name: item.khmerName,
-            category: item.category,
             supplier: item.supplier,
-            tags: item.tags,
-            unit_tag: item.unitTag,
+            measure_unit: item.measureUnit,
             unit_price: item.unitPrice,
-            variant_tags: item.variantTags,
             last_ordered: item.lastOrdered,
             order_count: item.orderCount,
             last_held: item.lastHeld,
@@ -56,56 +50,12 @@ export class SupabaseSync {
       id: row.id,
       name: row.name,
       khmerName: row.khmer_name,
-      category: row.category,
       supplier: row.supplier,
-      tags: row.tags || [],
-      unitTag: row.unit_tag,
+      measureUnit: row.measure_unit,
       unitPrice: row.unit_price,
-      variantTags: row.variant_tags,
       lastOrdered: row.last_ordered,
       orderCount: row.order_count,
       lastHeld: row.last_held
-    }));
-  }
-
-  static async syncCategories(categories: Category[]): Promise<void> {
-    if (this.syncInProgress) return;
-    this.syncInProgress = true;
-
-    try {
-      for (const category of categories) {
-        const { error } = await supabase
-          .from('categories')
-          .upsert({
-            id: category.id,
-            name: category.name,
-            emoji: category.emoji,
-            store_tag: category.storeTag,
-            main_category: category.mainCategory,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-
-        if (error) throw error;
-      }
-    } finally {
-      this.syncInProgress = false;
-    }
-  }
-
-  static async getCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name');
-
-    if (error) throw error;
-
-    return (data || []).map(row => ({
-      id: row.id,
-      name: row.name,
-      emoji: row.emoji,
-      storeTag: row.store_tag,
-      mainCategory: row.main_category
     }));
   }
 
@@ -122,11 +72,7 @@ export class SupabaseSync {
             name: supplier.name,
             contact: supplier.contact,
             telegram_id: supplier.telegramId,
-            payment_method: supplier.paymentMethod,
-            order_type: supplier.orderType,
-            categories: supplier.categories,
             default_payment_method: supplier.defaultPaymentMethod,
-            default_order_type: supplier.defaultOrderType,
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
 
@@ -150,53 +96,9 @@ export class SupabaseSync {
       name: row.name,
       contact: row.contact,
       telegramId: row.telegram_id,
-      paymentMethod: row.payment_method,
-      orderType: row.order_type,
-      categories: row.categories || [],
-      defaultPaymentMethod: row.default_payment_method,
-      defaultOrderType: row.default_order_type
+      defaultPaymentMethod: row.default_payment_method
     }));
   }
-
-  static async syncTags(tags: Tag[]): Promise<void> {
-    if (this.syncInProgress) return;
-    this.syncInProgress = true;
-
-    try {
-      for (const tag of tags) {
-        const { error } = await supabase
-          .from('tags')
-          .upsert({
-            id: tag.id,
-            name: tag.name,
-            color: tag.color,
-            category: tag.category,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-
-        if (error) throw error;
-      }
-    } finally {
-      this.syncInProgress = false;
-    }
-  }
-
-  static async getTags(): Promise<Tag[]> {
-    const { data, error } = await supabase
-      .from('tags')
-      .select('*')
-      .order('name');
-
-    if (error) throw error;
-
-    return (data || []).map(row => ({
-      id: row.id,
-      name: row.name,
-      color: row.color,
-      category: row.category
-    }));
-  }
-
 
   static async syncPendingOrders(orders: PendingOrder[]): Promise<void> {
     if (this.syncInProgress) return;
@@ -212,8 +114,7 @@ export class SupabaseSync {
             items: order.items,
             status: order.status,
             store_tag: order.storeTag,
-            order_type: order.orderType,
-            payment_method: order.paymentMethod,
+            payment_method: order.paymentMethod || 'CASH ON DELIVERY',
             contact_person: order.contactPerson,
             notes: order.notes,
             invoice_url: order.invoiceUrl,
@@ -246,7 +147,6 @@ export class SupabaseSync {
       items: row.items || [],
       status: row.status,
       storeTag: row.store_tag,
-      orderType: row.order_type,
       paymentMethod: row.payment_method,
       contactPerson: row.contact_person,
       notes: row.notes,
@@ -276,9 +176,7 @@ export class SupabaseSync {
           .from('current_order')
           .update({
             items: items,
-            order_type: metadata.orderType,
             payment_method: metadata.paymentMethod,
-            manager: metadata.manager,
             store: metadata.store,
             updated_at: new Date().toISOString()
           })
@@ -290,9 +188,7 @@ export class SupabaseSync {
           .from('current_order')
           .insert({
             items: items,
-            order_type: metadata.orderType,
             payment_method: metadata.paymentMethod,
-            manager: metadata.manager,
             store: metadata.store
           });
 
@@ -315,90 +211,16 @@ export class SupabaseSync {
     if (!data) {
       return {
         items: [],
-        metadata: {
-          id: crypto.randomUUID(),
-          status: 'draft',
-          orderType: 'Delivery',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
+        metadata: { paymentMethod: 'CASH ON DELIVERY' }
       };
     }
 
     return {
       items: data.items || [],
       metadata: {
-        id: data.id || crypto.randomUUID(),
-        status: data.status || 'draft',
-        orderType: data.order_type || 'Delivery',
         paymentMethod: data.payment_method,
-        manager: data.manager,
-        store: data.store,
-        createdAt: data.created_at || new Date().toISOString(),
-        updatedAt: data.updated_at || new Date().toISOString()
+        store: data.store
       }
-    };
-  }
-
-  static async syncSettings(settings: AppSettings): Promise<void> {
-    if (this.syncInProgress) return;
-    this.syncInProgress = true;
-
-    try {
-      const { data: existing } = await supabase
-        .from('settings')
-        .select('id')
-        .limit(1)
-        .maybeSingle();
-
-      if (existing) {
-        const { error } = await supabase
-          .from('settings')
-          .update({
-            default_supplier: settings.defaultSupplier,
-            order_template: settings.orderTemplate,
-            pos_mode: settings.posMode,
-            autosave: settings.autosave,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existing.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('settings')
-          .insert({
-            default_supplier: settings.defaultSupplier,
-            order_template: settings.orderTemplate,
-            pos_mode: settings.posMode,
-            autosave: settings.autosave
-          });
-
-        if (error) throw error;
-      }
-    } finally {
-      this.syncInProgress = false;
-    }
-  }
-
-  static async getSettings(): Promise<AppSettings> {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .limit(1)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    if (!data) {
-      return { posMode: true, autosave: true };
-    }
-
-    return {
-      defaultSupplier: data.default_supplier,
-      orderTemplate: data.order_template,
-      posMode: data.pos_mode,
-      autosave: data.autosave
     };
   }
 
@@ -420,15 +242,6 @@ export class SupabaseSync {
     if (error) throw error;
   }
 
-  static async deleteCategory(categoryId: string): Promise<void> {
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', categoryId);
-
-    if (error) throw error;
-  }
-
   static async deleteSupplier(supplierId: string): Promise<void> {
     const { error } = await supabase
       .from('suppliers')
@@ -437,14 +250,4 @@ export class SupabaseSync {
 
     if (error) throw error;
   }
-
-  static async deleteTag(tagId: string): Promise<void> {
-    const { error } = await supabase
-      .from('tags')
-      .delete()
-      .eq('id', tagId);
-
-    if (error) throw error;
-  }
-
 }

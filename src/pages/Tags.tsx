@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { UNIT_TAGS, STORE_TAGS, PAYMENT_METHODS, ORDER_TYPES } from '@/types';
+import { MEASURE_UNITS, STORE_TAGS, PAYMENT_METHODS } from '@/types';
 
 export default function Tags() {
   const navigate = useNavigate();
@@ -25,13 +25,9 @@ export default function Tags() {
     readOnly: boolean;
     variantType?: 'brand' | 'quantity' | 'size';
   }[] = [
-    { title: 'Units', emoji: '💼', tags: [...UNIT_TAGS.map(String)], initialTags: [...UNIT_TAGS.map(String)], gradientClass: 'bg-gradient-units', readOnly: false },
+    { title: 'Measure Units', emoji: '💼', tags: [...MEASURE_UNITS.map(String)], initialTags: [...MEASURE_UNITS.map(String)], gradientClass: 'bg-gradient-units', readOnly: false },
     { title: 'Store Tags', emoji: '📌', tags: [...STORE_TAGS.map(String)], initialTags: [...STORE_TAGS.map(String)], gradientClass: 'bg-gradient-store', readOnly: false },
     { title: 'Payment Method', emoji: '💳', tags: [...PAYMENT_METHODS.map(String)], initialTags: [...PAYMENT_METHODS.map(String)], gradientClass: 'bg-gradient-payment', readOnly: false },
-    { title: 'Order Type', emoji: '🚚', tags: [...ORDER_TYPES.map(String)], initialTags: [...ORDER_TYPES.map(String)], gradientClass: 'bg-gradient-order', readOnly: false },
-    { title: 'Item Brands', emoji: '🏷️', tags: [], initialTags: [], gradientClass: 'bg-amber-500', readOnly: false, variantType: 'brand' },
-    { title: 'Item Sizes', emoji: '📏', tags: [], initialTags: [], gradientClass: 'bg-emerald-500', readOnly: false, variantType: 'size' },
-    { title: 'Item Quantities', emoji: '🔢', tags: [], initialTags: [], gradientClass: 'bg-blue-500', readOnly: false, variantType: 'quantity' },
   ];
 
   const [categories, setCategories] = useState(initialCategories);

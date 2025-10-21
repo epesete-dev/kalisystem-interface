@@ -58,10 +58,8 @@ import { AddItemModal } from '@/components/AddItemModal';
 import {
   PendingOrderStatus,
   PaymentMethod,
-  OrderType,
   StoreTag,
   PendingOrder,
-  ORDER_TYPES,
   STORE_TAGS,
   PAYMENT_METHODS,
   Item
@@ -619,27 +617,7 @@ export default function Order() {
               <>
                 {/* Order Metadata Card */}
                 <Card className="p-4 bg-card border-border">
-                  <div className="grid grid-cols-3 gap-4">
-                    {/* Order Type */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Order Type</label>
-                      <Select
-                        value={currentOrderMetadata.orderType}
-                        onValueChange={(value) => orderOps.updateMetadata({ orderType: value as OrderType })}
-                      >
-                        <SelectTrigger data-testid="select-order-type">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ORDER_TYPES.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type === 'Delivery' ? '🚚' : '📦'} {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
+                  <div className="grid grid-cols-2 gap-4">
                     {/* Store */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Store</label>
@@ -938,24 +916,6 @@ export default function Order() {
                                 </Select>
                               </div>
                               <div className="space-y-2">
-                                <Label>Order Type</Label>
-                                <Select
-                                  value={order.orderType || ''}
-                                  onValueChange={(value) => pendingOrderOps.updateOne(order.id, { orderType: value as OrderType })}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select order type" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {ORDER_TYPES.map((type) => (
-                                      <SelectItem key={type} value={type}>
-                                        {type === 'Delivery' ? '🚚' : '📦'} {type}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
                                 <Label>Store</Label>
                                 <Select
                                   value={order.storeTag || ''}
@@ -1133,24 +1093,6 @@ export default function Order() {
                                         {PAYMENT_METHODS.map((method) => (
                                           <SelectItem key={method} value={method}>
                                             {method === 'COD' ? '💰' : method === 'Aba' ? '💳' : method === 'TrueMoney' ? '🧧' : '💸'} {method}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Order Type</Label>
-                                    <Select
-                                      value={order.orderType || ''}
-                                      onValueChange={(value) => pendingOrderOps.updateOne(order.id, { orderType: value as OrderType })}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select order type" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {ORDER_TYPES.map((type) => (
-                                          <SelectItem key={type} value={type}>
-                                            {type === 'Delivery' ? '🚚' : '📦'} {type}
                                           </SelectItem>
                                         ))}
                                       </SelectContent>
