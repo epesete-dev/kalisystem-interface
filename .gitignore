@@ -28,6 +28,7 @@ package-lock.json
 *.sln
 *.sw?
 .env
+.env.production
 
 # IDE settings
 .gemini/
